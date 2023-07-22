@@ -44,19 +44,51 @@ function todoSchema(title, priority, dueDate, category, subtasks){
 
     return todo;
 }
+function extractDueDate(todoText) {
+    // Define regular expressions to match different date and time formats
+    const tomorrowPattern = /\btomorrow\b/i;
+    const datePattern = /\b\d{1,2}(st|nd|rd|th)? \w+ \d{4}\b/i;  // e.g., 13th Jan 2023
+    const dateTimePattern = /\b\d{1,2}(st|nd|rd|th)? \w+ \d{4} \d{1,2}:\d{2}( [ap]m)?\b/i;  // e.g., 13th Jan 2023 3 pm
+  
+    let extDueDate = null;
+    let extTitle = todoText;
+  
+    if (tomorrowPattern.test(todoText)) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      extDueDate = tomorrow;
+      extTitle = todoText.replace(tomorrowPattern, '').trim();
+    } else if (datePattern.test(todoText)) {
+      const match = todoText.match(datePattern)[0];
+      extDueDate = new Date(match);
+      extTitle = todoText.replace(datePattern, '').trim();
+    } else if (dateTimePattern.test(todoText)) {
+      const match = todoText.match(dateTimePattern)[0];
+      extDueDate = new Date(match);
+      extTitle = todoText.replace(dateTimePattern, '').trim();
+    }
+  
+    return { extDueDate, extTitle };
+  }
+  
+
 function addToDo(){
     const title = document.getElementById("todo-title").value;
     const priority = document.getElementById("priority").value;
     const category = document.getElementById("category").value;
     const deadline = document.getElementById("due-date").value;
     let dueDate;
+    let {extDueDate, extTitle} = extractDueDate(title);
     if(!deadline){
+        if(extDueDate) dueDate = extDueDate;
+        else
         dueDate = new Date(new Date().getTime() + 24 * 60 * 60 * 1000)
     }else{
         dueDate = new Date(deadline)
     }
+    
     const subtasks = [];
-    const todoItem = todoSchema(title, priority, dueDate, category, subtasks);
+    const todoItem = todoSchema(extTitle, priority, dueDate, category, subtasks);
     console.log(todoItem)
     todo.push(todoItem)
     render(false, false)
