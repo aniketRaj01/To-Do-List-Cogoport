@@ -29,10 +29,22 @@ const root = document.getElementById("root");
 function uuidv4() {
     return Math.random().toString(16).slice(2);
 }
-function todoSchema(title, priority, dueDate, category, subtasks){
+function setReminder(dueDate, title, ind){
 
-    let todo = {
-        id: uuidv4(),
+    if(new Date() >= dueDate){
+        var audio = new Audio('./alarm.mp3');
+        audio.play();
+        alert(`Reminder for ToDo due date ${dueDate} and title "${title}" `)
+        clearInterval(todo[ind].reminder)
+    }
+}
+
+function todoSchema(title, priority, dueDate, category, subtasks, reminderTime){
+    let id = uuidv4()
+    let t = reminderTime;
+    if(!t) t = dueDate;
+    let todoItem = {
+        id: id,
         title: title,
         priority: priority,
         category: category,
@@ -41,10 +53,14 @@ function todoSchema(title, priority, dueDate, category, subtasks){
         dueDate: dueDate,
         created_at: new Date(),
         archive: false,
+        reminderTime: t,
+        reminder: setInterval(function(){
+            setReminder(new Date(t), title, todo.length-1);
+        }, 1000)
     }
-
-    return todo;
+    return todoItem;
 }
+
 function extractDueDate(todoText) {
     // Define regular expressions to match different date and time formats
     const tomorrowPattern = /\btomorrow\b/i;
@@ -78,6 +94,7 @@ function addToDo(){
     const priority = document.getElementById("priority").value;
     const category = document.getElementById("category").value;
     const deadline = document.getElementById("due-date").value;
+    const reminderTime = document.getElementById("reminder-time").value;
     let dueDate;
     let {extDueDate, extTitle} = extractDueDate(title);
     if(!deadline){
@@ -87,12 +104,11 @@ function addToDo(){
     }else{
         dueDate = new Date(deadline)
     }
-    
     const subtasks = [];
-    const todoItem = todoSchema(extTitle, priority, dueDate, category, subtasks);
-    console.log(todoItem)
+    const todoItem = todoSchema(extTitle, priority, dueDate, category, subtasks, reminderTime);
     todo.push(todoItem)
     render(false, false)
+    
 }
 
 function deleteToDo(event){
@@ -188,8 +204,11 @@ function render(isTemp, isArchive){
             <h6 class="card-subtitle mb-2 text-muted ${todo[i].complete ? 'complete' : ''}"><b>Priority:</b> ${todo[i].priority} </h6>
             <h6 class="card-subtitle mb-2 text-muted ${todo[i].complete ? 'complete' : ''}"><b>Category:</b> ${todo[i].category}</h6>
             ${
-                !todo[i].complete ? `<h6 class="card-subtitle mb-2 text-muted"><b>DeadLine:</b> ${new Date(todo[i].dueDate)}</h6>` : ""
+                !todo[i].complete ? `<h6 class="card-subtitle mb-2 text-muted"><b>DeadLine:</b> ${new Date(todo[i].dueDate)}</h6> 
+                <h6 class="card-subtitle mb-2 text-muted"><b>DeadLine:</b> ${new Date(todo[i].reminderTime)}</h6> 
+                ` : ""
             }
+            
             <button name="${todo[i].id}" onclick="deleteToDo(event)" class="btn btn-danger">Delete</button>
             <button name="${todo[i].id}" onclick="editToDo(event)" class="btn btn-primary">Save Changes</button>
             <button name="${todo[i].id}" onclick="toggleComplete(event)" class="btn btn-success">Mark ${todo[i].complete ? "Incomplete" : "Complete"}</button>
