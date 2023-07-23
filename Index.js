@@ -8,6 +8,7 @@ let todo = [
         subtasks: [],
         dueDate: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
         created_at: new Date(),
+        archive: false,
     },
     {
         title: "breakfast",
@@ -17,11 +18,11 @@ let todo = [
         dueDate: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
         complete: false,
         subtasks: [],
-        created_at: new Date()
+        created_at: new Date(),
+        archive: false,
     }
 ]
 let existingItems = JSON.parse(localStorage.getItem("todo"));
-console.log(existingItems)
 if(existingItems) todo = existingItems
 
 const root = document.getElementById("root");
@@ -122,7 +123,7 @@ function toggleComplete(event){
 }
 
 function toggleArchive(event){
-    let id = event.target.namec;
+    let id = event.target.name;
     for(let i = 0; i<todo.length; i++) if(id === todo[i].id) todo[i].archive = !todo[i].archive;
     viewArchive()
 }
@@ -223,7 +224,6 @@ function render(isTemp, isArchive){
     root.innerHTML=str;
     if(!isTemp)
     localStorage.setItem("todo", JSON.stringify(todo))
-    console.log(todo)
 }
 
 render(true, false)
