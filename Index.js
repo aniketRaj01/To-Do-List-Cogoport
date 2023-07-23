@@ -184,9 +184,19 @@ for(let i = 0; i<todo.length; i++){
         todo.splice(i, 1);
     }
 }
-
 todo = [...arr, ...todo];
 render(true, archiveCheck)
+}
+
+function seeBacklog(){
+    let str="INCOMPLETED TASKS:\n";
+
+    for(let i = 0; i<todo.length; i++){
+        if(!todo[i].complete){
+            str += `TITLE: ${todo[i].title}\n PRIORITY: ${todo[i].priority}\n DEAD-LINE: ${new Date(todo[i].dueDate)}\n CREATED-AT:${new Date(todo[i].created_at)}\n`
+        }
+    }
+    alert(str);
 }
 
 function render(isTemp, isArchive){
