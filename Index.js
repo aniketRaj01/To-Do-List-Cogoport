@@ -122,7 +122,7 @@ function toggleComplete(event){
 }
 
 function toggleArchive(event){
-    let id = event.target.name;
+    let id = event.target.namec;
     for(let i = 0; i<todo.length; i++) if(id === todo[i].id) todo[i].archive = !todo[i].archive;
     viewArchive()
 }
