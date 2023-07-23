@@ -9,22 +9,16 @@ let todo = [
         dueDate: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
         created_at: new Date(),
         archive: false,
-    },
-    {
-        title: "breakfast",
-        id: uuidv4(),
-        priority: "low",
-        category: "general",
-        dueDate: new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
-        complete: false,
-        subtasks: [],
-        created_at: new Date(),
-        archive: false,
+        reminderTime:new Date(new Date().getTime() + 24 * 60 * 60 * 1000),
+        completed_at: new Date(),
     }
 ]
+let activityLogIndex = 1;
+let activityLog = `ACTIVITY\n\n${activityLogIndex++}.) ${todo[0].created_at} Added 'brush your teeth' \n${activityLogIndex++}.) ${todo[0].completed_at} completed 'brush your teeth'\n`
 let existingItems = JSON.parse(localStorage.getItem("todo"));
 if(existingItems) todo = existingItems
-
+let activityLogStorage = JSON.parse(localStorage.getItem("activityLog"));
+if(activityLogStorage) activityLog = activityLogStorage
 const root = document.getElementById("root");
 function uuidv4() {
     return Math.random().toString(16).slice(2);
@@ -36,6 +30,7 @@ function setReminder(dueDate, title, ind){
         audio.play();
         alert(`Reminder for ToDo due date ${dueDate} and title "${title}" `)
         clearInterval(todo[ind].reminder)
+        activityLog += `${activityLogIndex++}.) ${new Date()} Reminder completed to '${title}'\n`
     }
 }
 
@@ -107,15 +102,21 @@ function addToDo(){
     const subtasks = [];
     const todoItem = todoSchema(extTitle, priority, dueDate, category, subtasks, reminderTime);
     todo.push(todoItem)
+    activityLog += `${activityLogIndex++}.) ${new Date()}added '${title}'\n`
     render(false, false)
     
+}
+
+function viewActivityLog(){
+    alert(activityLog);
 }
 
 function deleteToDo(event){
     let id = event.target.name
     for(let i = 0; i<todo.length; i++){
-        if(todo[i].id == id) todo.splice(i, 1);
+        if(todo[i].id == id) {todo.splice(i, 1); activityLog += `${activityLogIndex++}.) ${new Date()}Deleted '${todo[i].title}'\n`;}
     }
+    
     render(false, false)
 }
 
@@ -125,6 +126,7 @@ function editToDo(event){
     for(let i = 0; i<todo.length; i++){
         if(todo[i].id === id) {
             todo[i].title = val;
+            activityLog += `${activityLogIndex++}.) ${new Date()} Edited '${todo[i].title}'\n`;
             break;
         }
     }
@@ -134,13 +136,24 @@ function editToDo(event){
 
 function toggleComplete(event){
     let id = event.target.name;
-    for(let i = 0; i<todo.length; i++) if(id === todo[i].id) todo[i].complete = !todo[i].complete;
+    for(let i = 0; i<todo.length; i++) if(id === todo[i].id) {
+        todo[i].complete = !todo[i].complete
+        if(todo[i].complete){
+            activityLog += `${activityLogIndex++}.) ${new Date()} completed '${todo[i].title}'\n`;
+        }
+    };
     render(false, false)
 }
 
 function toggleArchive(event){
     let id = event.target.name;
-    for(let i = 0; i<todo.length; i++) if(id === todo[i].id) todo[i].archive = !todo[i].archive;
+    for(let i = 0; i<todo.length; i++) if(id === todo[i].id) {
+        todo[i].archive = !todo[i].archive;
+        if(todo[i].archive)
+        activityLog += `${activityLogIndex++}.) ${new Date()} Archived '${todo[i].title}'\n`;
+        else activityLog += `${activityLogIndex++}.) ${new Date()} UnArchived'${todo[i].title}'\n`;
+    };
+
     viewArchive()
 }
 
@@ -190,10 +203,10 @@ render(true, archiveCheck)
 
 function seeBacklog(){
     let str="INCOMPLETED TASKS:\n";
-
+    let x = 1;
     for(let i = 0; i<todo.length; i++){
         if(!todo[i].complete){
-            str += `TITLE: ${todo[i].title}\n PRIORITY: ${todo[i].priority}\n DEAD-LINE: ${new Date(todo[i].dueDate)}\n CREATED-AT:${new Date(todo[i].created_at)}\n`
+            str += `${x++}.) TITLE: ${todo[i].title}\n`
         }
     }
     alert(str);
@@ -215,7 +228,7 @@ function render(isTemp, isArchive){
             <h6 class="card-subtitle mb-2 text-muted ${todo[i].complete ? 'complete' : ''}"><b>Category:</b> ${todo[i].category}</h6>
             ${
                 !todo[i].complete ? `<h6 class="card-subtitle mb-2 text-muted"><b>DeadLine:</b> ${new Date(todo[i].dueDate)}</h6> 
-                <h6 class="card-subtitle mb-2 text-muted"><b>DeadLine:</b> ${new Date(todo[i].reminderTime)}</h6> 
+                <h6 class="card-subtitle mb-2 text-muted"><b>Reminder Time:</b> ${new Date(todo[i].reminderTime)}</h6> 
                 ` : ""
             }
             
@@ -253,6 +266,7 @@ function render(isTemp, isArchive){
     root.innerHTML=str;
     if(!isTemp)
     localStorage.setItem("todo", JSON.stringify(todo))
+    localStorage.setItem("activityLog", JSON.stringify(activityLog));
 }
 
 render(true, false)
